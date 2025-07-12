@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>000418.xyz - I'm a teapot</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap");
+
+      :root {
+        --bg-color: #000418;
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --border-color: rgba(255, 255, 255, 0.15);
+        --text-color: #ffffff;
+        --cmd-color: #39ff14;
+        --cmd-command: #4ee44e;
+        --cmd-flag: #66ccff;
+        --cmd-url: #ffb86c;
+        --header-color: #70d6ff;
+        --info-color: #cccccc;
+        --response-color: #ffab91;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        background: var(--bg-color);
+        font-family: "Fira Mono", monospace;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        color: var(--text-color);
+      }
+
+      .terminal-wrapper {
+        width: 720px;
+        max-width: 90vw;
+        height: 420px;
+        background: var(--glass-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        backdrop-filter: blur(30px) saturate(180%) contrast(120%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%) contrast(120%);
+        box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.05),
+          0 4px 30px rgba(0, 0, 0, 0.4);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        user-select: none;
+      }
+
+      .terminal-header {
+        height: 36px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .terminal-header .button {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .close {
+        background: #ff605c;
+      }
+      .minimize {
+        background: #ffbd44;
+      }
+      .maximize {
+        background: #00ca4e;
+      }
+
+      .terminal-content {
+        flex: 1;
+        padding: 20px;
+        font-size: 1.4rem;
+        overflow: hidden;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+
+      .cursor {
+        display: inline-block;
+        width: 10px;
+        height: 1.4rem;
+        background: var(--text-color);
+        margin-left: 4px;
+        animation: blink 1s step-start infinite;
+        vertical-align: text-bottom;
+        position: relative;
+        top: -2px;
+      }
+
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .cmd {
+        color: var(--cmd-color);
+      }
+      .header {
+        color: var(--header-color);
+      }
+      .info {
+        color: var(--info-color);
+      }
+      .response {
+        color: var(--response-color);
+      }
+
+      /* Syntax colored parts for curl command */
+      .curl-command {
+        color: var(--cmd-command);
+      }
+      .curl-flag {
+        color: var(--cmd-flag);
+      }
+      .curl-url {
+        color: var(--cmd-url);
+      }
+
+      @media (max-width: 600px) {
+        .terminal-wrapper {
+          height: 360px;
+          border-radius: 12px;
+        }
+        .terminal-content {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="terminal-wrapper"
+    >
+      <div
+        class="terminal-header"
+        role="toolbar"
+        aria-label="Window control buttons"
+      >
+        <div class="button close" aria-label="Close window"></div>
+        <div class="button minimize" aria-label="Minimize window"></div>
+        <div class="button maximize" aria-label="Maximize window"></div>
+      </div>
+      <div class="terminal-content" id="terminal"></div>
+    </div>
+
+    <script>
+
+      const terminal = document.getElementById('terminal');
+      const dateHeader = `Date: ${new Date().toUTCString()}`;
+
+      const lines = [
+        {
+          className: "cmd",
+          html: '<span class="curl-command">$ curl</span> <span class="curl-flag">-i</span> <span class="curl-url">https://000418.xyz</span>',
+        },
+        { className: "", text: "" },
+        { className: "header", text: "HTTP/1.1 418 I'm a teapot" },
+        { className: "info", text: dateHeader },
+        { className: "info", text: "Content-Type: text/plain; charset=utf-8" },
+        { className: "info", text: "Content-Length: 33" },
+        { className: "info", text: "Cache-Control: no-cache" },
+        { className: "info", text: `Server: TeaPot v4.18 ☕️` },
+        { className: "", text: "" },
+        { className: "response", text: "I'm a teapot. No coffee here." },
+        { className: "", text: "" },
+        { className: "cmd", text: "$ " },
+      ];
+
+      let line = 0,
+        charIndex = 0;
+
+      function type() {
+        if (line >= lines.length) return;
+
+        let content = "";
+        if (lines[line].html !== undefined) {
+          const rawText = lines[line].html.replace(/<[^>]*>/g, "");
+          const visibleText = rawText.slice(0, charIndex);
+
+          if (charIndex === 0) {
+            content = "";
+          } else if (charIndex < rawText.length) {
+            content = visibleText;
+          } else {
+            content = lines[line].html;
+          }
+        } else {
+          content = lines[line].text.slice(0, charIndex);
+        }
+
+        const prevLines = lines
+          .slice(0, line)
+          .map((l) => {
+            if (l.html !== undefined)
+              return `<div class="${l.className}">${l.html}</div>`;
+            return `<div class="${l.className}">${l.text}</div>`;
+          })
+          .join("");
+
+        terminal.innerHTML =
+          prevLines +
+          `<div class="${lines[line].className}">${content}<span class="cursor"></span></div>`;
+
+        charIndex++;
+        if (
+          charIndex >
+          (lines[line].html !== undefined
+            ? lines[line].html.replace(/<[^>]*>/g, "").length
+            : lines[line].text.length)
+        ) {
+          charIndex = 0;
+          line++;
+          setTimeout(type, 100);
+        } else {
+          setTimeout(type, 20);
+        }
+      }
+      type();
+    </script>
+  </body>
+</html>
