@@ -64,7 +64,6 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        background: transparent;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
 
@@ -88,7 +87,7 @@
         flex: 1;
         padding: 20px;
         font-size: 1.4rem;
-        overflow: hidden;
+        overflow-y: auto;
         white-space: pre-wrap;
         line-height: 1.5;
       }
@@ -124,7 +123,6 @@
         color: var(--response-color);
       }
 
-      /* Syntax colored parts for curl command */
       .curl-command {
         color: var(--cmd-command);
       }
@@ -137,7 +135,7 @@
 
       @media (max-width: 600px) {
         .terminal-wrapper {
-          height: 360px;
+          height: 400px;
           border-radius: 12px;
         }
         .terminal-content {
@@ -147,14 +145,8 @@
     </style>
   </head>
   <body>
-    <div
-      class="terminal-wrapper"
-    >
-      <div
-        class="terminal-header"
-        role="toolbar"
-        aria-label="Window control buttons"
-      >
+    <div class="terminal-wrapper">
+      <div class="terminal-header" role="toolbar" aria-label="Window control buttons">
         <div class="button close" aria-label="Close window"></div>
         <div class="button minimize" aria-label="Minimize window"></div>
         <div class="button maximize" aria-label="Maximize window"></div>
@@ -163,7 +155,6 @@
     </div>
 
     <script>
-
       const terminal = document.getElementById('terminal');
       const dateHeader = `Date: ${new Date().toUTCString()}`;
 
@@ -185,8 +176,7 @@
         { className: "cmd", text: "$ " },
       ];
 
-      let line = 0,
-        charIndex = 0;
+      let line = 0, charIndex = 0;
 
       function type() {
         if (line >= lines.length) return;
@@ -209,11 +199,9 @@
 
         const prevLines = lines
           .slice(0, line)
-          .map((l) => {
-            if (l.html !== undefined)
-              return `<div class="${l.className}">${l.html}</div>`;
-            return `<div class="${l.className}">${l.text}</div>`;
-          })
+          .map(l =>
+            `<div class="${l.className}">${l.html !== undefined ? l.html : l.text}</div>`
+          )
           .join("");
 
         terminal.innerHTML =
@@ -221,12 +209,10 @@
           `<div class="${lines[line].className}">${content}<span class="cursor"></span></div>`;
 
         charIndex++;
-        if (
-          charIndex >
-          (lines[line].html !== undefined
-            ? lines[line].html.replace(/<[^>]*>/g, "").length
-            : lines[line].text.length)
-        ) {
+        const lineLength = lines[line].html !== undefined
+          ? lines[line].html.replace(/<[^>]*>/g, "").length
+          : lines[line].text.length;
+        if (charIndex > lineLength) {
           charIndex = 0;
           line++;
           setTimeout(type, 100);
